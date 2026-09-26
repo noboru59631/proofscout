@@ -1,0 +1,25 @@
+import { z } from "zod";
+
+export const sourceTypeSchema = z.enum(["primary", "secondary", "community"]);
+export const claimStatusSchema = z.enum(["verified", "contradicted", "unverified"]);
+export const agentStageSchema = z.enum(["PLANNING", "SEARCHING", "VERIFYING", "CHALLENGING", "CONTRADICTION FOUND", "RECHECKING", "VERDICT READY"]);
+export const verdictSchema = z.enum(["SUPPORTED", "MIXED", "NOT SUPPORTED"]);
+export const sourceSchema = z.object({ id: z.string().min(1), title: z.string().min(1), publisher: z.string().min(1), url: z.string().url(), type: sourceTypeSchema, publishedAt: z.string().optional(), excerpt: z.string().min(1), reliability: z.number().min(0).max(1) });
+export const plannerOutputSchema = z.object({ traceId: z.string().min(1), question: z.string().min(1), subquestions: z.array(z.string().min(1)).min(1), stages: z.array(z.string().min(1)).min(1) });
+export const scoutOutputSchema = z.object({ traceId: z.string().min(1), query: z.string().min(1), sources: z.array(sourceSchema).min(1) });
+export const claimSchema = z.object({ id: z.string().min(1), text: z.string().min(1), status: claimStatusSchema, confidence: z.number().min(0).max(1), supportingSourceIds: z.array(z.string()), contradictingSourceIds: z.array(z.string()), rationale: z.string().min(1) });
+export const bullThesisSchema = z.object({ position: z.literal("BULL"), summary: z.string().min(1), claims: z.array(z.string()).min(1), confidence: z.number().min(0).max(1) });
+export const bearThesisSchema = z.object({ position: z.literal("BEAR"), summary: z.string().min(1), claims: z.array(z.string()).min(1), confidence: z.number().min(0).max(1) });
+export const contradictionSchema = z.object({ id: z.string().min(1), claimId: z.string().min(1), description: z.string().min(1), severity: z.enum(["material", "minor"]), sourceIds: z.array(z.string()).min(1) });
+export const judgeOutputSchema = z.object({ verdict: verdictSchema, summary: z.string().min(1), confidence: z.number().min(0).max(1), claimIds: z.array(z.string()), contradictionIds: z.array(z.string()), conditions: z.array(z.string()) });
+export const comparisonSchema = z.object({ simulated: z.boolean(), standard: z.object({ verdict: z.string(), claims: z.number(), contradictions: z.number(), sources: z.number() }), proofScout: z.object({ verdict: verdictSchema, claims: z.number(), contradictions: z.number(), sources: z.number() }) });
+export const researchReportSchema = z.object({ runId: z.string(), query: z.string(), mode: z.enum(["demo", "live"]), createdAt: z.string(), verdict: verdictSchema, verdictSummary: z.string(), confidence: z.number().min(0).max(1), planner: plannerOutputSchema, scout: scoutOutputSchema, bull: bullThesisSchema, bear: bearThesisSchema, claims: z.array(claimSchema), sources: z.array(sourceSchema), contradictions: z.array(contradictionSchema), majorContradictions: z.array(z.string()), whatWouldChangeConclusion: z.array(z.string()), judge: judgeOutputSchema, comparison: comparisonSchema, trace: z.array(z.object({ stage: agentStageSchema, detail: z.string(), at: z.string() })) });
+export type SourceRecord = z.infer<typeof sourceSchema>;
+export type PlannerOutput = z.infer<typeof plannerOutputSchema>;
+export type ScoutOutput = z.infer<typeof scoutOutputSchema>;
+export type Claim = z.infer<typeof claimSchema>;
+export type BullThesis = z.infer<typeof bullThesisSchema>;
+export type BearThesis = z.infer<typeof bearThesisSchema>;
+export type Contradiction = z.infer<typeof contradictionSchema>;
+export type JudgeOutput = z.infer<typeof judgeOutputSchema>;
+export type ResearchReport = z.infer<typeof researchReportSchema>;
