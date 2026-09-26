@@ -27,11 +27,15 @@ npm run build
 ## Modes and architecture
 
 - **Demo mode:** deterministic mock provider; shows the complete planner/scout/verifier/bull/bear/contradiction/judge flow, claim-level lineage, source quality, trace IDs, and a clearly labelled simulated single-pass comparison.
-- **Live mode:** set `NEXT_PUBLIC_DEMO_MODE=false` and provide `NEBIUS_API_KEY`. The native `fetch` adapter calls Nebius Token Factory’s OpenAI-compatible API and validates JSON with Zod after every stage.
-- **Optional retrieval:** `TAVILY_API_KEY` enables Tavily search for live Scout candidates. Without it, the live Scout model must return its own normalized source records.
+- **Live mode:** set `NEXT_PUBLIC_DEMO_MODE=false` and provide `NEBIUS_API_KEY`. Planner/Bull/Bear/contradiction analysis use Nemotron Super, Nano handles extraction/verification, and Ultra is the final judge. Every stage uses retries plus Zod validation; unavailable live runs become explicitly labelled `FALLBACK` reports.
+- **Optional retrieval:** `TAVILY_API_KEY` enables live Tavily search. URLs, titles, published dates when supplied, source type, and retrieval time are preserved without fabricated metadata.
 - **Safety boundary:** no trading execution, wallet custody, swaps, or blockchain writes are implemented.
 
 The schemas in `lib/schemas.ts` define `PlannerOutput`, `ScoutOutput`, `SourceRecord`, `Claim`, `BullThesis`, `BearThesis`, `Contradiction`, `JudgeOutput`, and `FinalReport` (the validated `ResearchReport`). No stage passes unchecked free-form text to the next stage.
+
+## Evidence scoring
+
+The transparent deterministic claim score is `0.35 × source tier + 0.30 × independent support + 0.20 × recency + 0.15 − contradiction penalty − unresolved penalty`, clamped to 0–1. Source tier is primary `1.0`, secondary `0.65`, community `0.35`; independent support counts distinct publishers; recency receives credit only when a published date exists. The model proposes artifacts, but this score and the final traceability map remain application-owned.
 
 ## Official Nebius model IDs
 
@@ -49,7 +53,7 @@ The case and spelling are intentional: Token Factory model IDs are case-sensitiv
 
 `.github/workflows/ci.yml` runs `npm ci`, tests, TypeScript validation, and the Next.js production build on pushes to `main` and pull requests. Demo URLs are illustrative and do not constitute real evidence. Live output quality depends on retrieved sources and model responses; confidence and contradictions remain visible rather than being presented as certainty.
 
-Live mode requires only `NEBIUS_API_KEY`; `TAVILY_API_KEY` is optional and improves retrieval. No secrets belong in `.env.example` or source control.
+Live mode requires only `NEBIUS_API_KEY`; `TAVILY_API_KEY` is optional and improves retrieval. No secrets belong in `.env.example` or source control. There are no blockchain writes, trading actions, wallets, or financial transactions.
 
 ## License
 
